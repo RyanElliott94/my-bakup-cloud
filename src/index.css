@@ -156,6 +156,9 @@ label {
     margin: 0;
     padding-top: 10px;
 }
+.image-item {
+  cursor: pointer;
+}
 
 @media (min-width: 320px) and (max-width: 732px) {
   .container {
