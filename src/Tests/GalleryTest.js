@@ -15,6 +15,7 @@ export default class GalleryTest extends React.Component{
         super(props)
         this.state = {
             imageRef: firebase.storage().ref(`${props.location.state.storagePath}/`),
+            thumbRef: firebase.storage().ref(`${props.location.state.storagePath}/thumbs`),
             originalListData: [],
             hasLoaded: false,
             noImages: false,
@@ -23,12 +24,14 @@ export default class GalleryTest extends React.Component{
         
     this.modifiedListData = [];
     this.newImagesList = [];
-    this.numberPerPage = 30;
+    this.numberPerPage = 50;
     this.currentPage = 1;
     this.numberOfPages = 0;
     this.imgData = [];
     this.isOpen = false;
     this.imgsForSwipe = [];
+    this.fullSizeImageList = [];
+    this.fullSizeIMGs = [];
     }
 
     componentWillMount(){
@@ -37,8 +40,6 @@ export default class GalleryTest extends React.Component{
 
     componentDidMount() {
         this.loadImages = setInterval(() => {
-            console.log(`originalListData: ${this.state.originalListData.length}`);
-            console.log(`modifiedListData: ${this.modifiedListData.length}`);
                 this.loadList();
         }, 2000);
 
@@ -113,11 +114,12 @@ export default class GalleryTest extends React.Component{
     }
 
     async addItemsToArray(){
-        var firstPage = await this.state.imageRef.listAll();
+        var fullSizedImages = await this.state.imageRef.listAll();
+        var thumbs = await this.state.thumbRef.listAll();
             this.setState({
-                originalListData: firstPage.items
+                thumbs: thumbs.items,
+                fullSizeImages: fullSizedImages.items
             });
-
         this.numberOfPages = this.getNumberOfPages()
     }
     
@@ -127,43 +129,86 @@ export default class GalleryTest extends React.Component{
     
          var end = begin + this.numberPerPage;
 
-         this.modifiedListData = this.state.originalListData.slice(begin, end);
+         this.modifiedListData = this.state.thumbs.slice(begin, end);
+         this.slicedFullSizeImages = this.state.fullSizeImages.slice(begin, end);
 
          this.modifiedListData.map((item, i) => {
                 item.getDownloadURL().then(url => {
-                    item.getMetadata().then(data => {
+                item.getMetadata().then(data => {
                     this.imgData.push({
-                        index: i, 
-                        src: url,
-                        thumbnail: item.name.includes("512") ? url : "",
-                        fileType: data.contentType});
+                        index: i,
+                        src: {
+                            fileName: item.name,
+                            thumbnail: url,
+                            fileType: data.contentType
+                        }
+                        });
                     });
                 });
             });
-            console.log(this.imgData)
+            this.getFullSizeImages()
          this.drawList();
       }
+
+      getFullSizeImages = () => {
+          this.slicedFullSizeImages.map((item, i) => {
+              item.getMetadata().then(data => {
+                item.getDownloadURL().then(url => {
+                    this.fullSizeImageList.push(
+                        {
+                            fileName: item.name,
+                            fileType: data.contentType,
+                            src: url
+                        }
+                    );
+                 });
+              });
+          });
+      }
+
+      showImage = (e) => {
+          var fileName = $(e.target).attr("id");
+              var slicedName = fileName.split("_512x512").join("");
+             this.fullSizeImageList.forEach(img => {
+                 if(img.fileName === slicedName){
+                     window.open(img.src)
+                 }
+             });
+      }
     
+    //   () => {
+    //     var link = url.split("_512x512");
+    //     // .join(`token=${getToken}`)
+    //     link.map((img, i) => {
+    //         link.shift(i);
+    //         // img.join(`token=${getToken}`)
+    //     });
+    //     link.forEach(item => {
+    //         console.log(item)
+    //     });
+    //     return getToken + link;
+    // }
+
       getNumberOfPages() {
-        return Math.ceil(this.state.originalListData.length / this.numberPerPage);
+        return Math.ceil(this.state.thumbs.length / this.numberPerPage);
     }
 
     
 
     drawList = () => {
-        if(this.state.originalListData.length){
+        if(this.state.thumbs.length){
             this.setState({
                 hasLoaded: true
             });
     
-            this.imgData.forEach(img => {
-                this.imgsForSwipe.push(
-                    {
-                        src: img.src,
-                        h: 3000,
-                        w: 3000
-                    })
-            });
+            // this.imgData.forEach(img => {
+            //     this.imgsForSwipe.push(
+            //         {
+            //             src: img.src,
+            //             h: 3000,
+            //             w: 3000
+            //         })
+            // });
 
             this.check();
         }else{
@@ -234,19 +279,30 @@ export default class GalleryTest extends React.Component{
                 <span className="sr-only">Loading...</span>
                 </div>
                 <p className="loading-text">Loading...</p>
-                {this.state.hasLoaded ? this.imgData.map(item => {
+                {this.state.hasLoaded ? this.imgData.map((item, i) => {
                     $(".load-spin").css({display: "none"})
                     $(".loading-text").text("");
                     clearInterval(this.loadImages);
                     return <LazyLoad height={5}>
-                        {item.fileType.includes("video") ?
-                        <a href={item.source}>
+                        {item.src.fileType.includes("video") ?
+                        <a href={item.src}>
                         <FaFileVideo className="folder-icon img-thumbnail" color="#5f9ea0"/> 
-                        </a> : 
-                        <img className="img image-item img-thumbnail" key={item.index} id={item.index} src={item.thumbnail}></img>
+                        </a>
+                        :
+                        <img className="img image-item img-thumbnail" key={i} id={item.src.fileName} onClick={this.showImage} src={item.src.thumbnail}></img>
                         }
                     </LazyLoad>
                         }) : this.state.noImages ? this.noImages() : null}
+
+                        {this.fullSizeImageList.map((item, i) => {
+                        return item.fileType.includes("video") ?
+                        <LazyLoad>
+                        <a href={item.src}>
+                        <FaFileVideo className="folder-icon img-thumbnail" color="#5f9ea0"/> 
+                        </a>
+                        </LazyLoad>
+                         : null
+                    })}
                 </div>
                 <div className="controls">
                 <button className="btn btn-sm prev">Prev</button>
