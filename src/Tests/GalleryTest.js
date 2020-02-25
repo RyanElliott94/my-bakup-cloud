@@ -1,19 +1,22 @@
 import React from "react";
 import * as firebase from 'firebase';
 import { PhotoSwipe } from "react-photoswipe";
-import 'react-photoswipe/lib/photoswipe.css';
 import LazyLoad from "react-lazyload";
 import { FaFileVideo } from 'react-icons/fa';
+import { MdAddCircle } from 'react-icons/md';
+import { AiFillHome } from "react-icons/ai";
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+const Jimp  = require('jimp');
 require("firebase/database");
 require("firebase/storage");
 require("firebase/auth");
-const functions = require("firebase-functions")
 const $ = require("jquery");
 
 export default class GalleryTest extends React.Component{
     constructor(props){
         super(props)
         this.state = {
+            videoRef: firebase.storage().ref(`${props.location.state.storagePath}/videos`),
             imageRef: firebase.storage().ref(`${props.location.state.storagePath}/`),
             thumbRef: firebase.storage().ref(`${props.location.state.storagePath}/thumbs`),
             originalListData: [],
@@ -32,6 +35,8 @@ export default class GalleryTest extends React.Component{
     this.imgsForSwipe = [];
     this.fullSizeImageList = [];
     this.fullSizeIMGs = [];
+    this.preEditImages = [];
+    this.mq = window.matchMedia("(max-width: 480px)");
     }
 
     componentWillMount(){
@@ -39,25 +44,10 @@ export default class GalleryTest extends React.Component{
     }
 
     componentDidMount() {
+
         this.loadImages = setInterval(() => {
                 this.loadList();
         }, 2000);
-
-        $("#add-photo").on("click", () => {
-            $(".new-photo-input").focus().trigger('click');
-            $(".new-photo-input").on('change',(evt) => {
-                for(var i = 0; i < evt.target.files.length; i++){
-                    this.newImagesList.push(evt.target.files[i]);
-                    this.uploadPhoto(evt.target.files[i], {
-                        contentType: evt.target.files[i].type,
-                        name: evt.target.files[i].name,
-                        size: evt.target.files[i].size,
-                        updated: evt.target.files[i].lastModified
-                    });
-                }
-                
-            });
-        });
 
         $(".next").on("click", e => {
         this.currentPage += 1;
@@ -71,12 +61,39 @@ export default class GalleryTest extends React.Component{
 
     }
 
-    uploadPhoto(file, meta) {
+    addNewFile = () => {
+        $(".new-photo-input").focus().trigger('click');
+        $(".new-photo-input").on('change', (evt) => {
+            for(var i = 0; i < evt.target.files.length; i++){
+                var fileType = evt.target.files[i].type;
+                var fileName = evt.target.files[i].name;
+                var fileSize = evt.target.files[i].size;
+                var updated = evt.target.files[i].lastModified;
+                console.log(fileName)
+                this.uploadPhoto(evt.target.files[i], {
+                    contentType: fileType,
+                    name: fileName,
+                    size: fileSize,
+                    updated: updated
+                }, fileType.includes("image") ? "" : fileType.includes("video") ? "video" : "thumbnail", fileName);
+            }
+        });
+    }
+
+    uploadPhoto(file, meta, type, fileName) {
+        var fileType = this.state.imageRef.child(file.name).put(file, meta);
+        if(type === "thumbnail"){
+            fileType = this.state.thumbRef.child(fileName).putString(file, 'data_url');
+        }else if(type === "video"){
+            fileType = this.state.videoRef.child(file.name).put(file, meta);
+        }else {
+            fileType = this.state.imageRef.child(file.name).put(file, meta);
+        }
         const metadata = {
             meta
         };
 
-        let upload = this.state.imageRef.child(file.name).put(file, meta);
+        let upload = fileType;
         upload.on(firebase.storage.TaskEvent.STATE_CHANGED,
             (snapshot) => {
                 let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -94,8 +111,15 @@ export default class GalleryTest extends React.Component{
             }, () => {
                 upload.snapshot.ref.getDownloadURL().then((downloadURL) => {
                     $(".progress-bar").css({display:"none"});
+                    this.preEditImages.push({
+                        imageName: fileName,
+                        src: downloadURL
+                    });
+                }).finally(() => {
+                    this.createThumbnails()
                 });
             });
+
     }
     
 
@@ -107,6 +131,31 @@ export default class GalleryTest extends React.Component{
         options={{index: parseInt(index), h: 3000, w: 3000}} 
         onClose={this.handleClose()}
         />
+    }
+
+    createThumbnails = () => {
+        this.preEditImages.forEach(img => {
+            Jimp.read(img.src)
+            .then(lenna => {
+              return lenna
+                .resize(512, Jimp.AUTO)
+                .getBase64(Jimp.AUTO, (err, src) => {
+                    console.log(src);
+                    // this.uploadPhoto(img.src, "", "thumbnail", img.imageName);
+                });
+            })
+            .catch(err => {
+              console.error(err);
+            });
+        });
+
+        // DOWNLOAD AND INSTALL A IMAGE RESIZER NPM PACKAGE
+
+        // IMPORT SAID PACKAGE
+
+        // USE THE PACKAGE TO RESIZE THE IMAGE BEFORE OUTPUTTING THE FILE INTO A NEW ARRAY
+
+        // THEN PASS EACH RESIZED IMAGE THROUGHT uploadPhoto()
     }
 
     handleClose = () => {
@@ -264,8 +313,8 @@ export default class GalleryTest extends React.Component{
                 <section className="top-section">
                 <div className="options">
                 <p className="folder-name">{this.props.location.state.folderName}</p>
-                <a className="home-link" href="/">Home</a>
-                <button className="btn btn-sm" id="add-photo">Add more photo's</button>
+                {this.mq.matches ? <a className="home-ico" href="/"><AiFillHome color="white" /></a> : <a className="home-link" href="/">Home</a>}
+                {this.mq.matches ? <MdAddCircle className="add-photo-ico" color="white" onClick={this.addNewFile} /> : <button className="btn btn-sm" onClick={this.addNewFile} id="add-photo">Add more photo's</button>}
                 </div>
                 <input type="file" name="file" accept="image/*, video/*" id="add-photo" className="new-photo-input" style={{display:"none"}} multiple></input>
                 </section>
@@ -279,37 +328,52 @@ export default class GalleryTest extends React.Component{
                 <span className="sr-only">Loading...</span>
                 </div>
                 <p className="loading-text">Loading...</p>
+                <div className="image-grid">
                 {this.state.hasLoaded ? this.imgData.map((item, i) => {
                     $(".load-spin").css({display: "none"})
                     $(".loading-text").text("");
                     clearInterval(this.loadImages);
-                    return <LazyLoad height={5}>
+                    return <ContextMenuTrigger id="menu">
+                    <LazyLoad height={5}>
                         {item.src.fileType.includes("video") ?
                         <a href={item.src}>
                         <FaFileVideo className="folder-icon img-thumbnail" color="#5f9ea0"/> 
                         </a>
                         :
-                        <img className="img image-item img-thumbnail" key={i} id={item.src.fileName} onClick={this.showImage} src={item.src.thumbnail}></img>
+                          <img className="img image-item" key={i} id={item.src.fileName} onClick={this.showImage} src={item.src.thumbnail}></img>
                         }
                     </LazyLoad>
+                    </ContextMenuTrigger>
                         }) : this.state.noImages ? this.noImages() : null}
-
                         {this.fullSizeImageList.map((item, i) => {
                         return item.fileType.includes("video") ?
                         <LazyLoad>
                         <a href={item.src}>
-                        <FaFileVideo className="folder-icon img-thumbnail" color="#5f9ea0"/> 
+                        <FaFileVideo className="video-file-icon" color="#5f9ea0"/> 
                         </a>
                         </LazyLoad>
                          : null
                     })}
-                </div>
+                    </div>
+                    </div>
                 <div className="controls">
                 <button className="btn btn-sm prev">Prev</button>
                 <button className="btn btn-sm next"value="next">Next</button>
                 </div>
                 </section>
             </div>
+
+            <ContextMenu id="menu">
+            <MenuItem data={{menuItem_0: 'item 0'}} onClick={this.handleClick}>
+            View image in a new tab
+            </MenuItem>
+            <MenuItem data={{menuItem_1: 'item 1'}} onClick={this.handleClick}>
+            Download File
+            </MenuItem>
+            <MenuItem data={{menuItem_2: 'item 2'}} onClick={this.handleClick}>
+            Delete this file
+            </MenuItem>
+            </ContextMenu>
             </div>
         );
     }

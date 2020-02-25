@@ -105,10 +105,8 @@ label {
 
 .col img {
   height: 200px;
-  width: 200px;
-  margin: 5px;
+  width: 100%;
   object-fit: cover;
-  text-align: center;
 }
 
 .folders {
@@ -117,6 +115,13 @@ label {
   grid-template-columns: 280px 280px 280px 280px;
   padding-top: 10px;
   grid-gap: 10px;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-column-gap: 5px;
+  grid-row-gap: 5px;
 }
 
 .folder-item {
@@ -135,6 +140,34 @@ label {
   height: 6rem;
 }
 
+.video-file-icon {
+  align-self: center;
+  width: 100%;
+  height: 150px;
+}
+
+.new-folder-ico, .add-photo-ico {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 10px;
+}
+
+.logout-ico {
+  float: right;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 10px;
+}
+
+.home-ico {
+  margin-inline-start: auto;
+}
+
+.home-ico svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 .folder-name {
   text-align: center;
   color: white;
@@ -142,12 +175,20 @@ label {
 }
 
 .create-folder {
+  align-self: flex-start;
   color: white !important;
   margin: 15px;
   padding: 0;
 }
 
-.create-folder:hover {
+.logout {
+  align-self: flex-end;
+  color: white !important;
+  margin: 15px;
+  padding: 0;
+}
+
+.create-folder:hover, .logout:hover {
   color: #3f3f3f !important;
 }
 
@@ -168,6 +209,15 @@ label {
     border-radius: 0;
   }
 
+  .folder-name {
+    text-align: center;
+    color: white;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
   .gal-content {
     height: 100vh;
     width: 100%;
@@ -176,6 +226,7 @@ label {
 }
 
 .top-section {
+  display: block;
   width: 100%;
 }
 

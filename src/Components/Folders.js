@@ -1,8 +1,10 @@
 import React from "react";
 import { Link, Route } from "react-router-dom";
 import { FaFolder } from 'react-icons/fa';
+import { AiFillFolderAdd } from "react-icons/ai";
+import { FiLogOut } from "react-icons/fi";
 import * as firebase from 'firebase/app';
-
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 require("firebase/database");
 require("bootstrap/js/src");
 const $ = require("jquery");
@@ -20,7 +22,7 @@ export default class Folders extends React.Component{
         }
 
         this.finalFolderList = [];
-
+        this.mq = window.matchMedia("(max-width: 480px)");
     }
 
     componentWillMount() {
@@ -28,7 +30,6 @@ export default class Folders extends React.Component{
     }
 
     componentDidMount(){
-
         this.loadFolders = setInterval(() => {
             this.loadList();
         }, 1500);
@@ -40,6 +41,7 @@ export default class Folders extends React.Component{
         this.state.databaseRef.push().set({
             storagePath: folderName.includes(" ") ? folderName.split(" ").join("-").toLowerCase() :  folderName.toLowerCase(),
             folderName: $("#main-folder-name").val(),
+            ownerID: this.state.userID
           }, error => {
             if (error) {
               // The write failed...
@@ -67,11 +69,20 @@ export default class Folders extends React.Component{
         });
     }
 
+    logout = () => {
+        firebase.auth().signOut().then(() => {
+            window.location.pathname = "/";
+        });
+    }
+
     render(){
         return (
             <div>
             <section className="top-section">
-            <button className="btn btn-sm create-folder" onClick={() => $('.modal').modal('show')}>Create a folder</button>
+                <div className="options">
+            {this.mq.matches ? <AiFillFolderAdd className="new-folder-ico" color="white" onClick={() => $('.modal').modal('show')} /> : <button className="btn btn-sm create-folder" onClick={() => $('.modal').modal('show')}>Create a folder</button>}
+            {this.mq.matches ? <FiLogOut className="logout-ico" color="white" onClick={this.logout} /> : <button className="btn btn-sm logout" onClick={this.logout}>Log Out</button>}
+                </div>
             </section>
             <div className="folder-layout" >
             <div class="d-flex justify-content-center pt-3">
@@ -93,7 +104,11 @@ export default class Folders extends React.Component{
                         folderName: items.val().folderName,
                         loadImages: true
                     } 
-                }}><p className="folder-item"><FaFolder className="folder-icon" color="#5f9ea0" />{items.val().folderName}</p></Link>
+                }}>
+                    <ContextMenuTrigger id="menu">
+                    <p className="folder-item"><FaFolder className="folder-icon" color="#5f9ea0" />{items.val().folderName}</p>
+                    </ContextMenuTrigger>
+                    </Link>
             }) : clearInterval(this.loadFolders)}
                 </div>
                 <div className="modal" tabIndex="-1" role="dialog">
@@ -117,6 +132,19 @@ export default class Folders extends React.Component{
             </div>
             </div>
             </div>
+
+            <ContextMenu id="menu">
+            <MenuItem data={{menuItem_0: 'item 0'}} onClick={this.handleClick}>
+            View image in a new tab
+            </MenuItem>
+            <MenuItem data={{menuItem_1: 'item 1'}} onClick={this.handleClick}>
+            Download File
+            </MenuItem>
+            <MenuItem data={{menuItem_2: 'item 2'}} onClick={this.handleClick}>
+            Delete this file
+            </MenuItem>
+            </ContextMenu>
+
             </div>
         )
     }
