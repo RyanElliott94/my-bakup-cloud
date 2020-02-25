@@ -29,13 +29,13 @@ export default class GalleryTest extends React.Component{
     this.newImagesList = [];
     this.numberPerPage = 50;
     this.currentPage = 1;
+    
     this.numberOfPages = 0;
     this.imgData = [];
     this.isOpen = false;
     this.imgsForSwipe = [];
     this.fullSizeImageList = [];
     this.fullSizeIMGs = [];
-    this.preEditImages = [];
     this.mq = window.matchMedia("(max-width: 480px)");
     }
 
@@ -79,18 +79,16 @@ export default class GalleryTest extends React.Component{
         });
     }
 
-    uploadPhoto(file, meta, type, fileName) {
-        var fileType = this.state.imageRef.child(file.name).put(file, meta);
-        if(type === "thumbnail"){
-            fileType = this.state.thumbRef.child(fileName).putString(file, 'data_url', meta);
-        }else if(type === "video"){
-            fileType = this.state.videoRef.child(file.name).put(file, meta);
-        }else {
-            fileType = this.state.imageRef.child(file.name).put(file, meta);
-        }
+    uploadPhoto(file, meta, type) {
+        var fileType = "";
         const metadata = {
             meta
         };
+        if(type === "video"){
+            fileType = this.state.videoRef.child(file.name).put(file, meta);
+        }else{
+            fileType = this.state.imageRef.child(file.name).put(file, meta);
+        }
 
         let upload = fileType;
         upload.on(firebase.storage.TaskEvent.STATE_CHANGED,
@@ -106,21 +104,57 @@ export default class GalleryTest extends React.Component{
                         break;
                     case 'storage/unknown':
                         break;
+                    default: 
+                    break;    
                 }
             }, () => {
                 upload.snapshot.ref.getDownloadURL().then((downloadURL) => {
                     $(".progress-bar").css({display:"none"});
-                        this.preEditImages.push({
-                            imageName: fileName,
-                            src: downloadURL
+                    // upload.snapshot.bytesTransferred
+                    // upload.snapshot.totalBytes
+                    console.log(upload);
+                    if(type === ""){
+                    Jimp.read(downloadURL)
+                    .then(data => {
+                    return data
+                        .resize(512, Jimp.AUTO)
+                        .getBase64(Jimp.AUTO, (err, src) => {
+                            console.log(src);
+                            this.uploadThumbnails(src, file.name);
                         });
-                }).finally(() => {
-                    this.createThumbnails();
+                    })
+                    .catch(err => {
+                    console.error(err);
+                    });
+                    }
                 });
             });
-
     }
     
+    uploadThumbnails = (file, fileName) => {
+        var upload = this.state.thumbRef.child(fileName).putString(file, 'data_url', {contentType: "image/jpg"});
+
+        upload.on(firebase.storage.TaskEvent.STATE_CHANGED,
+            (snapshot) => {
+                let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                $(".progress-bar").css({display:"flex"});
+                $(".progress-bar").width(Math.round(progress) + "%");
+                $(".progress-bar").text(Math.round(progress) + "%");
+            },
+            (error) => {
+                switch (error.code) {
+                    case 'storage/unauthorized':
+                        break;
+                    case 'storage/unknown':
+                        break;
+                    default: 
+                    break;    
+                }
+            }, () => {
+                $(".progress-bar").css({display:"none"});
+            }
+            );
+    }
 
     viewImage = event => {
         const index = $(event.target).attr("id");
@@ -130,31 +164,6 @@ export default class GalleryTest extends React.Component{
         options={{index: parseInt(index), h: 3000, w: 3000}} 
         onClose={this.handleClose()}
         />
-    }
-
-    createThumbnails = () => {
-        this.preEditImages.forEach(img => {
-            Jimp.read(img.src)
-            .then(lenna => {
-              return lenna
-                .resize(512, Jimp.AUTO)
-                .getBase64(Jimp.AUTO, (err, src) => {
-                    console.log(src);
-                    this.uploadPhoto(src, "", "thumbnail", img.imageName);
-                });
-            })
-            .catch(err => {
-              console.error(err);
-            });
-        });
-
-        // DOWNLOAD AND INSTALL A IMAGE RESIZER NPM PACKAGE
-
-        // IMPORT SAID PACKAGE
-
-        // USE THE PACKAGE TO RESIZE THE IMAGE BEFORE OUTPUTTING THE FILE INTO A NEW ARRAY
-
-        // THEN PASS EACH RESIZED IMAGE THROUGHT uploadPhoto()
     }
 
     handleClose = () => {
@@ -196,6 +205,8 @@ export default class GalleryTest extends React.Component{
             });
             this.getFullSizeImages()
          this.drawList();
+
+         return;
       }
 
       getFullSizeImages = () => {
@@ -265,10 +276,10 @@ export default class GalleryTest extends React.Component{
     }
 
     check() {
-        $(".next").attr("disabled", this.currentPage == this.numberOfPages ? true : false);
-        $(".prev").attr("disabled", this.currentPage == 1 ? true : false);
-        $(".first").attr("disabled", this.currentPage == 1 ? true : false);
-        $(".last").attr("disabled", this.currentPage == this.numberOfPages ? true : false);
+        $(".next").attr("disabled", this.currentPage === this.numberOfPages ? true : false);
+        $(".prev").attr("disabled", this.currentPage === 1 ? true : false);
+        $(".first").attr("disabled", this.currentPage === 1 ? true : false);
+        $(".last").attr("disabled", this.currentPage === this.numberOfPages ? true : false);
     }
 
 
@@ -343,7 +354,7 @@ export default class GalleryTest extends React.Component{
                         }
                     </LazyLoad>
                     </ContextMenuTrigger>
-                        }) : this.state.noImages ? this.noImages() : null}
+                        }) : ""}
                         {this.fullSizeImageList.map((item, i) => {
                         return item.fileType.includes("video") ?
                         <LazyLoad>
@@ -354,6 +365,7 @@ export default class GalleryTest extends React.Component{
                          : null
                     })}
                     </div>
+                    {this.state.noImages ? this.noImages() : null}
                     </div>
                 <div className="controls">
                 <button className="btn btn-sm prev">Prev</button>
