@@ -69,7 +69,6 @@ export default class GalleryTest extends React.Component{
                 var fileName = evt.target.files[i].name;
                 var fileSize = evt.target.files[i].size;
                 var updated = evt.target.files[i].lastModified;
-                console.log(fileName)
                 this.uploadPhoto(evt.target.files[i], {
                     contentType: fileType,
                     name: fileName,
@@ -83,7 +82,7 @@ export default class GalleryTest extends React.Component{
     uploadPhoto(file, meta, type, fileName) {
         var fileType = this.state.imageRef.child(file.name).put(file, meta);
         if(type === "thumbnail"){
-            fileType = this.state.thumbRef.child(fileName).putString(file, 'data_url');
+            fileType = this.state.thumbRef.child(fileName).putString(file, 'data_url', meta);
         }else if(type === "video"){
             fileType = this.state.videoRef.child(file.name).put(file, meta);
         }else {
@@ -111,12 +110,12 @@ export default class GalleryTest extends React.Component{
             }, () => {
                 upload.snapshot.ref.getDownloadURL().then((downloadURL) => {
                     $(".progress-bar").css({display:"none"});
-                    this.preEditImages.push({
-                        imageName: fileName,
-                        src: downloadURL
-                    });
+                        this.preEditImages.push({
+                            imageName: fileName,
+                            src: downloadURL
+                        });
                 }).finally(() => {
-                    this.createThumbnails()
+                    this.createThumbnails();
                 });
             });
 
@@ -141,7 +140,7 @@ export default class GalleryTest extends React.Component{
                 .resize(512, Jimp.AUTO)
                 .getBase64(Jimp.AUTO, (err, src) => {
                     console.log(src);
-                    // this.uploadPhoto(img.src, "", "thumbnail", img.imageName);
+                    this.uploadPhoto(src, "", "thumbnail", img.imageName);
                 });
             })
             .catch(err => {
