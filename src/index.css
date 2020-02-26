@@ -1,300 +1,310 @@
 body {
-    /* background-image: url(./Assets/Images/bg1.jpg); */
-    background-image: linear-gradient(to top, #d9afd9 0%, #97d9e1 100%);
-    background-repeat: no-repeat;
-    margin: 0 !important;
-    font-family: 'Raleway' !important;
-    font-weight: 500 !important;
-    /* font-family: 'Roboto'; */
-    /* font-family: 'Open Sans'; */
-    -webkit-font-smoothing: antialiased;
+  /* background-image: url(./Assets/Images/bg1.jpg); */
+  background-image: linear-gradient(to top, #d9afd9 0%, #97d9e1 100%);
+  background-repeat: no-repeat;
+  margin: 0 !important;
+  font-family: 'Raleway' !important;
+  font-weight: 500 !important;
+  /* font-family: 'Roboto'; */
+  /* font-family: 'Open Sans'; */
+  -webkit-font-smoothing: antialiased;
 }
 
 html {
-  height: 100%;
+height: 100%;
 }
 
 .container {
-  width: 30% !important;
-  transform: translate(0, 100%);
-  background-color: ghostwhite;
-  padding: 50px;
+width: 30% !important;
+transform: translate(0, 100%);
+background-color: ghostwhite;
+padding: 50px;
 }
 
 .load-spin {
-  color: cadetblue!important;
+color: cadetblue!important;
 }
 
 label {
-  margin-top: .5rem;
+margin-top: .5rem;
 }
 
 .btn {
-  font-family: 'Raleway' !important;
-  font-weight: 600 !important;
+font-family: 'Raleway' !important;
+font-weight: 600 !important;
 }
 
 .gal-content {
-  height: 100vh;
-  overflow: auto;
-  margin-left: auto;
-  margin-right: auto;
-  width: 70%;
-  background-color: ghostwhite;
-  /* padding: 10px; */
+height: 100vh;
+overflow: auto;
+margin-left: auto;
+margin-right: auto;
+width: 70%;
+background-color: ghostwhite;
+/* padding: 10px; */
 }
 
 .folder-layout {
-  height: 100vh;
-  margin-left: auto;
-  margin-right: auto;
-  width: 70%;
-  background-color: ghostwhite;
+height: 100vh;
+margin-left: auto;
+margin-right: auto;
+width: 70%;
+background-color: ghostwhite;
 }
 
 .top-section {
-  display: flex;
-  flex-direction: column;
-  margin-right: auto;
-  margin-left: auto;
-  background-color: cadetblue;
-  height: 10%;
-  width: 70%;
+display: flex;
+flex-direction: column;
+margin-right: auto;
+margin-left: auto;
+background-color: cadetblue;
+height: 10%;
+width: 70%;
 }
 
 .options {
-  display: flex;
-  height: 100%;
-  justify-content: space-between;
-  align-items: center;
+display: flex;
+height: 100%;
+justify-content: space-between;
+align-items: center;
 }
 
 .options button {
-  color: white;
-  margin: 15px;
-  padding: 0;
+color: white;
+margin: 15px;
+padding: 0;
 }
 
 .home-link {
-  color: white;
+color: white;
 }
 
 .home-link:hover {
-  color: #3f3f3f;
-  font-family: 'Raleway' !important;
-  font-weight: 600 !important;
-  text-decoration: none;
+color: #3f3f3f;
+font-family: 'Raleway' !important;
+font-weight: 600 !important;
+text-decoration: none;
 }
 
 .progress {
-  background-color: ghostwhite !important;
+background-color: ghostwhite !important;
 }
 
 .progress-bar {
-  margin-left: auto;
-  margin-right: auto;
-  height: 15px;
-  border-radius: 10px;
-  font-size: 11px;
-  background-color: #5f9ea0 !important;
+margin-left: auto;
+margin-right: auto;
+height: 15px;
+border-radius: 10px;
+font-size: 11px;
+background-color: #5f9ea0 !important;
 }
 
 .image-content {
-  text-align: center;
+text-align: center;
 }
 
 .col img {
-  height: 200px;
-  width: 100%;
-  object-fit: cover;
+height: 200px;
+width: 100%;
+object-fit: cover;
 }
 
 .folders {
-  display: grid;
-  justify-content: center;
-  grid-template-columns: 280px 280px 280px 280px;
-  padding-top: 10px;
-  grid-gap: 10px;
+display: grid;
+justify-content: center;
+grid-template-columns: 280px 280px 280px 280px;
+padding-top: 10px;
+grid-gap: 10px;
 }
 
 .image-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-column-gap: 5px;
-  grid-row-gap: 5px;
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+grid-column-gap: 5px;
+grid-row-gap: 5px;
 }
 
 .folder-item {
-  display: flex;
-  color: #3f3f3f;
-  font-family: 'Raleway' !important;
-  font-weight: 600;
-  flex-direction: column;
-  text-align: center;
-  width: auto;
+display: flex;
+color: #3f3f3f;
+font-family: 'Raleway' !important;
+font-weight: 600;
+flex-direction: column;
+text-align: center;
+width: auto;
 }
 
 .folder-icon {
-  align-self: center;
-  width: 6rem;
-  height: 6rem;
+align-self: center;
+width: 6rem;
+height: 6rem;
 }
 
 .video-file-icon {
-  align-self: center;
-  width: 100%;
-  height: 150px;
+align-self: center;
+width: 100%;
+height: 150px;
 }
 
 .new-folder-ico, .add-photo-ico {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin: 10px;
+width: 1.5rem;
+height: 1.5rem;
+margin: 10px;
 }
 
 .logout-ico {
-  float: right;
-  width: 1.5rem;
-  height: 1.5rem;
-  margin: 10px;
+float: right;
+width: 1.5rem;
+height: 1.5rem;
+margin: 10px;
 }
 
 .home-ico {
-  margin-inline-start: auto;
+margin-inline-start: auto;
 }
 
 .home-ico svg {
-  width: 1.5rem;
-  height: 1.5rem;
+width: 1.5rem;
+height: 1.5rem;
+}
+
+.folder-name {
+text-align: center;
+color: white;
+margin: 15px;
+}
+
+.create-folder {
+align-self: flex-start;
+color: white !important;
+margin: 15px;
+padding: 0;
+}
+
+.logout {
+align-self: flex-end;
+color: white !important;
+margin: 15px;
+padding: 0;
+}
+
+.create-folder:hover, .logout:hover {
+color: #3f3f3f !important;
+}
+
+.loading-text {
+text-align: center;
+  margin: 0;
+  padding-top: 10px;
+}
+.image-item {
+cursor: pointer;
+}
+
+.react-contextmenu {
+background-color: white;
+padding: 5px;
+border-radius: 5px;
+box-shadow: 0px 0px 7px 0px #8a8a8a;
+}
+
+.react-contextmenu-wrapper {
+width: 100%;
+}
+
+@media (max-width: 320px){
+  .image-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 732px) {
+.container {
+  height: 100vh;
+  width: 100% !important;
+  transform: translate(0,0);
+  border-radius: 0;
 }
 
 .folder-name {
   text-align: center;
   color: white;
-  margin: 15px;
+  margin-left: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
 }
 
-.create-folder {
-  align-self: flex-start;
-  color: white !important;
-  margin: 15px;
-  padding: 0;
-}
-
-.logout {
-  align-self: flex-end;
-  color: white !important;
-  margin: 15px;
-  padding: 0;
-}
-
-.create-folder:hover, .logout:hover {
-  color: #3f3f3f !important;
-}
-
-.loading-text {
-  text-align: center;
-    margin: 0;
-    padding-top: 10px;
-}
-.image-item {
-  cursor: pointer;
-}
-
-.react-contextmenu {
-  background-color: white;
-  padding: 5px;
-  border-radius: 5px;
-  box-shadow: 0px 0px 7px 0px #8a8a8a;
-}
-
-.react-contextmenu-wrapper {
+.gal-content {
+  height: 100vh;
   width: 100%;
-}
-
-@media (min-width: 320px) and (max-width: 732px) {
-  .container {
-    height: 100vh;
-    width: 100% !important;
-    transform: translate(0,0);
-    border-radius: 0;
-  }
-
-  .folder-name {
-    text-align: center;
-    color: white;
-    margin-left: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    font-size: 14px;
-}
-
-  .gal-content {
-    height: 100vh;
-    width: 100%;
-    overflow: scroll;
-    border-radius: 0;
+  overflow: scroll;
+  border-radius: 0;
 }
 
 .top-section {
-  display: block;
-  width: 100%;
+display: block;
+width: 100%;
 }
 
-  .folder-layout {
-    width: 100%;
-    height: 100vh;
-    border-radius: 0;
-  }
+.folder-layout {
+  width: 100%;
+  height: 100vh;
+  border-radius: 0;
+}
 
-  .folders {
-    padding-top: 10px;
-    grid-template-columns: 75px 75px 75px 75px;
+.folders {
+  padding-top: 10px;
+  grid-template-columns: 75px 75px 75px 75px;
 }
 
 
 .folder-icon {
-  align-self: center;
-  width: 3rem;
-  height: 3rem;
+align-self: center;
+width: 3rem;
+height: 3rem;
 }
 
 .folder-item {
-  font-size: 13px;
+font-size: 13px;
 }
 
 .col img {
-  height: 80px;
-  width: 80px;
-  margin: 2px;
+height: 80px;
+width: 80px;
+margin: 2px;
 }
 
 .controls {
-  margin: 50px;
+margin: 50px;
 }
 
 .login-content {
-  display: flex;
-  flex-direction: column;
-  transform: translate(0, 100%);
+display: flex;
+flex-direction: column;
+transform: translate(0, 100%);
+}
+
+.image-grid {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 }
 
 @media (min-width: 768px) and (max-width: 1366px) {
-  .gal-content {
-    height: 100vh;
-    width: 70%;
-    border-radius: 0;
+.gal-content {
+  height: 100vh;
+  width: 70%;
+  border-radius: 0;
 }
 
-  .col img {
-    height: 135px;
-    width: 135px;
-  }
+.col img {
+  height: 135px;
+  width: 135px;
+}
 
-  .folders {
-    padding-top: 10px;
-    grid-template-columns: 120px 120px 120px 120px;
+.folders {
+  padding-top: 10px;
+  grid-template-columns: 120px 120px 120px 120px;
 }
 }
