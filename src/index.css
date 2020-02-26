@@ -201,6 +201,17 @@ label {
   cursor: pointer;
 }
 
+.react-contextmenu {
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 7px 0px #8a8a8a;
+}
+
+.react-contextmenu-wrapper {
+  width: 100%;
+}
+
 @media (min-width: 320px) and (max-width: 732px) {
   .container {
     height: 100vh;
