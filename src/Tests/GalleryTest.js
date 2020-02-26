@@ -59,6 +59,30 @@ export default class GalleryTest extends React.Component{
         this.loadList();
         });
 
+            // this.convertCurrentFiles();
+
+    }
+
+    convertCurrentFiles = () => {
+        var fileList = firebase.storage().ref("/twitter").listAll();
+
+        fileList.then(data => {
+            data.items.forEach(item => {
+                item.getDownloadURL().then(url => {
+                    Jimp.read(url)
+                    .then(data => {
+                    return data
+                        .resize(512, Jimp.AUTO)
+                        .getBase64(Jimp.AUTO, (err, src) => {
+                            this.uploadThumbnails(src, item.name);
+                        });
+                    })
+                    .catch(err => {
+                    console.error(err);
+                    });
+                });
+            });
+        });
     }
 
     addNewFile = () => {
@@ -119,7 +143,6 @@ export default class GalleryTest extends React.Component{
                     return data
                         .resize(512, Jimp.AUTO)
                         .getBase64(Jimp.AUTO, (err, src) => {
-                            console.log(src);
                             this.uploadThumbnails(src, file.name);
                         });
                     })
@@ -133,13 +156,11 @@ export default class GalleryTest extends React.Component{
     
     uploadThumbnails = (file, fileName) => {
         var upload = this.state.thumbRef.child(fileName).putString(file, 'data_url', {contentType: "image/jpg"});
-
+        console.log(upload)
         upload.on(firebase.storage.TaskEvent.STATE_CHANGED,
             (snapshot) => {
                 let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                $(".progress-bar").css({display:"flex"});
-                $(".progress-bar").width(Math.round(progress) + "%");
-                $(".progress-bar").text(Math.round(progress) + "%");
+                console.log("%", Math.round(progress));
             },
             (error) => {
                 switch (error.code) {
@@ -226,10 +247,11 @@ export default class GalleryTest extends React.Component{
       }
 
       showImage = (e) => {
-          var fileName = $(e.target).attr("id");
-              var slicedName = fileName.split("_512x512").join("");
+          var fileName = $(e.target).closest(".image-item").attr("id");
+        //   var doc = document
+        //   console.log($(doc).find(".react-contextmenu react-contextmenu--visible").find(".image-item"))
              this.fullSizeImageList.forEach(img => {
-                 if(img.fileName === slicedName){
+                 if(img.fileName === fileName){
                      window.open(img.src)
                  }
              });
@@ -375,7 +397,7 @@ export default class GalleryTest extends React.Component{
             </div>
 
             <ContextMenu id="menu">
-            <MenuItem data={{menuItem_0: 'item 0'}} onClick={this.handleClick}>
+            <MenuItem data={{menuItem_0: 'item 0'}} onClick={this.showImage}>
             View image in a new tab
             </MenuItem>
             <MenuItem data={{menuItem_1: 'item 1'}} onClick={this.handleClick}>
