@@ -98,25 +98,25 @@ export default class Folders extends React.Component{
             break;
         case "item-1":
             var id = $(target).find(".folder-item").attr("id");
-            firebase.database().ref(id).once("value", snap => {
+            this.state.databaseRef.once("value", snap => {
                 snap.forEach(data => {
-                    console.log(data.val())
-                //    var listData = firebase.storage().ref(`${data.val().storagePath}/`).listAll();
-                //    listData.then(listData => {
-                //        listData.items.forEach(img => {
-                //            console.log(img)
-                //         img.getDownloadURL().then(src => {
-                //             var xhr = new XMLHttpRequest();
-                //             xhr.responseType = 'blob';
-                //             xhr.onload = function(event) {
-                //                 var blob = xhr.response;
-                //                 saveAs(blob, img.name);
-                //             };
-                //             xhr.open('GET', src);
-                //             xhr.send();
-                //           });
-                //        });
-                //    });
+                    if(data.key === id){
+                        var listData = firebase.storage().ref(`${data.val().storagePath}/`).listAll();
+                        listData.then(listData => {
+                            listData.items.forEach(img => {
+                             img.getDownloadURL().then(src => {
+                                 var xhr = new XMLHttpRequest();
+                                 xhr.responseType = 'blob';
+                                 xhr.onload = function(event) {
+                                     var blob = xhr.response;
+                                     saveAs(blob, img.name);
+                                 };
+                                 xhr.open('GET', src);
+                                 xhr.send();
+                               });
+                            });
+                        });
+                    }
                 });
             });
             break;
@@ -207,13 +207,3 @@ export default class Folders extends React.Component{
         )
     }
 }
-
-// TODO
-// Fix the array of folders
-// Stop multiple folders showing when being added to view
-
-
-// NOTES
-// Once that works, when clicking button i need to pass the folder name and storage folder name throught to gallery as a prop
-
-// window.history.pushState("", "Title", "/gallery")
