@@ -6,6 +6,7 @@ import { FiLogOut } from "react-icons/fi";
 import * as firebase from 'firebase/app';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import { saveAs } from "file-saver";
+import Popup from "./Popup";
 require("firebase/database");
 require("bootstrap/js/src");
 require("firebase/storage");
@@ -60,6 +61,16 @@ export default class Folders extends React.Component{
           });
         }
 
+        updateFolder = (key, values) => {
+            this.state.databaseRef.once("value", snap => {
+                snap.forEach(data => {
+                    if(data.key === key){
+                        this.state.databaseRef.update(values);
+                    }
+                })
+            });
+        }
+
         
     getFolders = () => {
         this.state.databaseRef.on('child_added', data => {
@@ -89,12 +100,14 @@ export default class Folders extends React.Component{
     handleMenu = (e, data, target) => {
         switch(data.menuItem){
         case "item-0":
-            var id = $(target).find(".folder-item").attr("id");
-            this.finalFolderList.forEach(item => {
-                if(item.folderName === id){
-                    console.log(item.storagePath)
-                }
-            });
+            e.preventDefault();
+            var key = $(target).find(".folder-item").attr("id");
+            
+            // this.finalFolderList.forEach(item => {
+            //     if(item.folderName === id){
+            //         console.log(item.storagePath)
+            //     }
+            // });
             break;
         case "item-1":
             var id = $(target).find(".folder-item").attr("id");
@@ -154,7 +167,7 @@ export default class Folders extends React.Component{
                 clearInterval(this.loadFolders);
                 $(".load-spin").css({display: "none"})
                 $(".loading-text").text("");
-                console.log(this.state.userID);
+
                 return <Link className="f-items" key={i} to={{ 
                     pathname: '/gallery', 
                     state: {
@@ -163,12 +176,14 @@ export default class Folders extends React.Component{
                         loadImages: true
                     } 
                 }}>
+
                     <ContextMenuTrigger id="menu">
                     <p className="folder-item" id={items.folderID}><FaFolder className="folder-icon" color="#5f9ea0" />{items.folderName}</p>
                     </ContextMenuTrigger>
                     </Link>
             }) : clearInterval(this.loadFolders)}
                 </div>
+                <Popup show={false} />
                 <div className="modal" tabIndex="-1" role="dialog">
             <div className="modal-dialog" role="document">
                 <div className="modal-content">
@@ -207,3 +222,13 @@ export default class Folders extends React.Component{
         )
     }
 }
+
+// TODO
+// Fix the array of folders
+// Stop multiple folders showing when being added to view
+
+
+// NOTES
+// Once that works, when clicking button i need to pass the folder name and storage folder name throught to gallery as a prop
+
+// window.history.pushState("", "Title", "/gallery")
