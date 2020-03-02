@@ -6,7 +6,9 @@ import { FaFileVideo } from 'react-icons/fa';
 import { MdAddCircle } from 'react-icons/md';
 import { AiFillHome } from "react-icons/ai";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
-const Jimp  = require('jimp');
+import { saveAs } from "file-saver";
+import ReactPaginate from 'react-paginate';
+const Jimp = require('jimp');
 require("firebase/database");
 require("firebase/storage");
 require("firebase/auth");
@@ -19,17 +21,18 @@ export default class GalleryTest extends React.Component{
             videoRef: firebase.storage().ref(`${props.location.state.storagePath}/videos`),
             imageRef: firebase.storage().ref(`${props.location.state.storagePath}/`),
             thumbRef: firebase.storage().ref(`${props.location.state.storagePath}/thumbs`),
+            fullSizeImages: [],
             originalListData: [],
             hasLoaded: false,
             noImages: false,
             showImage: false
         }
-        
+
     this.modifiedListData = [];
     this.newImagesList = [];
-    this.numberPerPage = 50;
+    this.numberPerPage = 25;
     this.currentPage = 1;
-    
+    this.slicedFullSizeImages =[];
     this.numberOfPages = 0;
     this.imgData = [];
     this.isOpen = false;
@@ -47,19 +50,21 @@ export default class GalleryTest extends React.Component{
 
         this.loadImages = setInterval(() => {
                 this.loadList();
-        }, 2000);
+        }, 3000);
 
-        $(".next").on("click", e => {
-        this.currentPage += 1;
-        this.loadList();
+        $(document).on("contextmenu", e => {
+            e.preventDefault();
         });
 
-        $(".prev").on("click", e => {
-        this.currentPage = - 1;
-        this.loadList();
-        });
+        // $(".next").on("click", e => {
+        // this.currentPage += 1;
+        // this.loadList();
+        // });
 
-            // this.convertCurrentFiles();
+        // $(".previous").on("click", e => {
+        // this.currentPage = - 1;
+        // this.loadList();
+        // });
 
     }
 
@@ -105,6 +110,7 @@ export default class GalleryTest extends React.Component{
 
     uploadPhoto(file, meta, type) {
         var fileType = "";
+        let progress = 0;
         const metadata = {
             meta
         };
@@ -117,10 +123,10 @@ export default class GalleryTest extends React.Component{
         let upload = fileType;
         upload.on(firebase.storage.TaskEvent.STATE_CHANGED,
             (snapshot) => {
-                let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                $(".progress-bar").css({display:"flex"});
+                progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                $(".progress-bar").css({display:"block"});
                 $(".progress-bar").width(Math.round(progress) + "%");
-                $(".progress-bar").text(Math.round(progress) + "%");
+                $(".progress-bar").text(`Uploading File.... %${Math.round(progress)}`);
             },
             (error) => {
                 switch (error.code) {
@@ -133,11 +139,9 @@ export default class GalleryTest extends React.Component{
                 }
             }, () => {
                 upload.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                    $(".progress-bar").css({display:"none"});
-                    // upload.snapshot.bytesTransferred
-                    // upload.snapshot.totalBytes
                     console.log(upload);
                     if(type === ""){
+                    $(".progress-bar").text(`Generating Thumbnails... %${Math.round(progress)}`);
                     Jimp.read(downloadURL)
                     .then(data => {
                     return data
@@ -160,6 +164,9 @@ export default class GalleryTest extends React.Component{
         upload.on(firebase.storage.TaskEvent.STATE_CHANGED,
             (snapshot) => {
                 let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                $(".progress-bar").css({display:"block"});
+                $(".progress-bar").width(Math.round(progress) + "%");
+                $(".progress-bar").text(`Uploading Thumbnails... %${Math.round(progress)}`)
                 console.log("%", Math.round(progress));
             },
             (error) => {
@@ -210,6 +217,7 @@ export default class GalleryTest extends React.Component{
          this.modifiedListData = this.state.thumbs.slice(begin, end);
          this.slicedFullSizeImages = this.state.fullSizeImages.slice(begin, end);
 
+
          this.modifiedListData.map((item, i) => {
                 item.getDownloadURL().then(url => {
                 item.getMetadata().then(data => {
@@ -224,54 +232,73 @@ export default class GalleryTest extends React.Component{
                     });
                 });
             });
-            this.getFullSizeImages()
+         this.getFullSizeImages()
          this.drawList();
 
          return;
       }
 
       getFullSizeImages = () => {
-          this.slicedFullSizeImages.map((item, i) => {
-              item.getMetadata().then(data => {
+          this.slicedFullSizeImages.forEach(item => {
                 item.getDownloadURL().then(url => {
                     this.fullSizeImageList.push(
                         {
                             fileName: item.name,
-                            fileType: data.contentType,
                             src: url
                         }
                     );
                  });
-              });
           });
+
       }
 
-      showImage = (e) => {
-          var fileName = $(e.target).closest(".image-item").attr("id");
-        //   var doc = document
-        //   console.log($(doc).find(".react-contextmenu react-contextmenu--visible").find(".image-item"))
-             this.fullSizeImageList.forEach(img => {
-                 if(img.fileName === fileName){
-                     window.open(img.src)
-                 }
-             });
+      handleMenu = (e, data, target) => {
+          switch(data.menuItem){
+            case "item-1":
+                var fileName = $(target).find(".image-item").attr("id");
+                this.state.fullSizeImages.forEach(img => {
+              if(img.name === fileName){
+                    img.getDownloadURL().then(src => {
+                        var xhr = new XMLHttpRequest();
+                        xhr.responseType = 'blob';
+                        xhr.onload = function(event) {
+                            var blob = xhr.response;
+                            saveAs(blob, fileName);
+                        };
+                        xhr.open('GET', src);
+                        xhr.send();
+                      });
+              }
+          });
+              break;
+            case "item-2":
+                var fileName = $(target).find(".image-item").attr("id");
+                this.state.imageRef.child(fileName).delete().then(() => {
+                    this.state.thumbRef.child(fileName).delete();
+                }).catch(error => {
+                    console.log(error)
+                });
+              break;
+          }
       }
-    
-    //   () => {
-    //     var link = url.split("_512x512");
-    //     // .join(`token=${getToken}`)
-    //     link.map((img, i) => {
-    //         link.shift(i);
-    //         // img.join(`token=${getToken}`)
-    //     });
-    //     link.forEach(item => {
-    //         console.log(item)
-    //     });
-    //     return getToken + link;
-    // }
+
+      showImage = (e, data, target) => {
+          var fileName = $(e.target).closest(".image-item").attr("id");
+          var contextFileName = $(target).find(".image-item").attr("id");
+          var id = data.menuItem === "item-0" ? contextFileName : fileName;
+
+            this.state.fullSizeImages.forEach(img => {
+                if(img.name === id){
+                    img.getDownloadURL().then(src => {
+                        window.open(src)
+                    });
+                }
+            });
+      }
+
 
       getNumberOfPages() {
-        return Math.ceil(this.state.thumbs.length / this.numberPerPage);
+        return Math.ceil(this.imgData.length / this.numberPerPage);
     }
 
     
@@ -352,7 +379,7 @@ export default class GalleryTest extends React.Component{
                 </section>
             <div className="gal-content">
                 <div className="progress">
-                <div className="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style={{display:"none"}}></div>
+                <div className="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" ></div>
                 </div>
                 <section className="image-content">
                 <div className="col">
@@ -365,20 +392,20 @@ export default class GalleryTest extends React.Component{
                     $(".load-spin").css({display: "none"})
                     $(".loading-text").text("");
                     clearInterval(this.loadImages);
-                    return <ContextMenuTrigger id="menu">
+                    return <ContextMenuTrigger id="menu" holdToDisplay={500}>
                     <LazyLoad height={5}>
                         {item.src.fileType.includes("video") ?
                         <a href={item.src}>
                         <FaFileVideo className="folder-icon img-thumbnail" color="#5f9ea0"/> 
                         </a>
                         :
-                          <img className="img image-item" key={i} id={item.src.fileName} onClick={this.showImage} src={item.src.thumbnail}></img>
+                          <img className="img image-item" key={i} id={item.src.fileName} onClick={this.showImage} src={item.src.thumbnail} download={item.src.thumbnail}></img>
                         }
                     </LazyLoad>
                     </ContextMenuTrigger>
                         }) : ""}
-                        {this.fullSizeImageList.map((item, i) => {
-                        return item.fileType.includes("video") ?
+                        {this.imgData.map((item, i) => {
+                        return item.src.fileType.includes("video") ?
                         <LazyLoad>
                         <a href={item.src}>
                         <FaFileVideo className="video-file-icon" color="#5f9ea0"/> 
@@ -390,6 +417,20 @@ export default class GalleryTest extends React.Component{
                     {this.state.noImages ? this.noImages() : null}
                     </div>
                 <div className="controls">
+                {/* <ReactPaginate
+                    previousLabel={'previous'}
+                    nextLabel={'next'}
+                    breakLabel={'...'}
+                    breakClassName={'break-me'}
+                    pageCount={this.getNumberOfPages}
+                    marginPagesDisplayed={2}
+                    pageRangeDisplayed={5}
+                    onPageChange={this.loadList}
+                    containerClassName={'pagination'}
+                    subContainerClassName={'pages pagination'}
+                    activeClassName={'active'}
+                /> */}
+
                 <button className="btn btn-sm prev">Prev</button>
                 <button className="btn btn-sm next"value="next">Next</button>
                 </div>
@@ -397,13 +438,13 @@ export default class GalleryTest extends React.Component{
             </div>
 
             <ContextMenu id="menu">
-            <MenuItem data={{menuItem_0: 'item 0'}} onClick={this.showImage}>
+            <MenuItem data={{menuItem: 'item-0'}} onClick={this.showImage}>
             View image in a new tab
             </MenuItem>
-            <MenuItem data={{menuItem_1: 'item 1'}} onClick={this.handleClick}>
+            <MenuItem data={{menuItem: 'item-1'}} onClick={this.handleMenu}>
             Download File
             </MenuItem>
-            <MenuItem data={{menuItem_2: 'item 2'}} onClick={this.handleClick}>
+            <MenuItem data={{menuItem: 'item-2'}} onClick={this.handleMenu}>
             Delete this file
             </MenuItem>
             </ContextMenu>
