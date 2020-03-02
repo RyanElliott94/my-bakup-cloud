@@ -41,33 +41,38 @@ export default class Folders extends React.Component{
             $(`#${data.key}`).remove();
         });
 
+        // $(document).on("contextmenu", e => {
+        //     e.preventDefault();
+        // });
+
+        $(document).on("click", ".create-folder", e => {
+            this.createFolder();
+            // $(".modal").modal("show");
+        });
     }
 
     createFolder = () => {
         var folderName = $("#main-folder-name").val();
         this.state.databaseRef.push().set({
-            storagePath: folderName.includes(" ") ? folderName.split(" ").join("-").toLowerCase() :  folderName.toLowerCase(),
+            storagePath: folderName.includes(" ") ? folderName.split(" ").join("-").toLowerCase() : folderName.toLowerCase(),
             folderName: $("#main-folder-name").val(),
             ownerID: this.state.userID
           }, error => {
             if (error) {
-              // The write failed...
             } else {
             }
           }).then(() => {
             $('.modal').modal('hide');
-            // $(".f-items").remove();
+            $("#btn-folder").removeClass("create-folder"); 
             this.loadList()
           });
         }
 
         updateFolder = (key, values) => {
-            this.state.databaseRef.once("value", snap => {
-                snap.forEach(data => {
-                    if(data.key === key){
-                        this.state.databaseRef.update(values);
-                    }
-                })
+            firebase.database().ref(`folders/${key}`).update(values).then(data => {
+                $("#btn-folder").removeClass("edit-folder");
+                $(".modal").modal("hide");
+                this.loadList();
             });
         }
 
@@ -102,12 +107,14 @@ export default class Folders extends React.Component{
         case "item-0":
             e.preventDefault();
             var key = $(target).find(".folder-item").attr("id");
-            
-            // this.finalFolderList.forEach(item => {
-            //     if(item.folderName === id){
-            //         console.log(item.storagePath)
-            //     }
-            // });
+            $("#btn-folder").addClass("edit-folder");
+            $(".modal").modal("show");
+
+            $(document).on("click", ".edit-folder", e => {
+                var folderName = $("#main-folder-name").val();
+                this.updateFolder(key, {folderName: folderName,
+                    storagePath: folderName.includes(" ") ? folderName.split(" ").join("-").toLowerCase() :  folderName.toLowerCase()});
+            });
             break;
         case "item-1":
             var id = $(target).find(".folder-item").attr("id");
@@ -151,7 +158,9 @@ export default class Folders extends React.Component{
             <div>
             <section className="top-section">
                 <div className="options">
-            {this.mq.matches ? <AiFillFolderAdd className="new-folder-ico" color="white" onClick={() => $('.modal').modal('show')} /> : <button className="btn btn-sm create-folder" onClick={() => $('.modal').modal('show')}>Create a folder</button>}
+            {this.mq.matches ? <AiFillFolderAdd className="new-folder-ico" color="white" onClick={() => {$("#btn-folder").addClass("create-folder") 
+            $(".modal").modal("show")}} /> : <button className="btn btn-sm create-folder" onClick={() => {$("#btn-folder").addClass("create-folder") 
+            $(".modal").modal("show")}}>Create a folder</button>}
             {this.mq.matches ? <FiLogOut className="logout-ico" color="white" onClick={this.logout} /> : <button className="btn btn-sm logout" onClick={this.logout}>Log Out</button>}
                 </div>
             </section>
@@ -183,7 +192,6 @@ export default class Folders extends React.Component{
                     </Link>
             }) : clearInterval(this.loadFolders)}
                 </div>
-                <Popup show={false} />
                 <div className="modal" tabIndex="-1" role="dialog">
             <div className="modal-dialog" role="document">
                 <div className="modal-content">
@@ -199,7 +207,7 @@ export default class Folders extends React.Component{
                 </div>
                 <div className="modal-footer">
                     <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" className="btn btn-primary" onClick={this.createFolder}>Create Folder</button>
+                    <button type="button" className="btn btn-primary" id="btn-folder">Create Folder</button>
                 </div>
                 </div>
             </div>
@@ -222,13 +230,3 @@ export default class Folders extends React.Component{
         )
     }
 }
-
-// TODO
-// Fix the array of folders
-// Stop multiple folders showing when being added to view
-
-
-// NOTES
-// Once that works, when clicking button i need to pass the folder name and storage folder name throught to gallery as a prop
-
-// window.history.pushState("", "Title", "/gallery")
